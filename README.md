@@ -35,8 +35,14 @@ Python postprocessing scripts for Gromacs xvg files
      output:
      histogram.csv
 
-   xvgplot plots chosen columns of an .xvg file
-     usage:
-     $ python xvgplot.py file-name.xvg [column_x:column_y, default=1:2]
+     $ python xvgplot.py file-name.xvg [column_x:column_y, default=1:2] [marker, default='-']
      example:
-     $ python xvgplot.py energy.xvg 1:2,1:3,2:4
+     $ python xvgplot.py energy.xvg 1:2,1:3,2:4 --
+     available markers:
+       -  line
+       :  dotted line
+       -- dashed line
+       .  points
+       o  circles
+       ^  up triangles
+       see matplotlib documentation for more...
