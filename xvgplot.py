@@ -2,62 +2,65 @@
 
 import os, sys, matplotlib.pyplot as plt
 from matplotlib import rc
-# from matplotlib.font_manager import FontProperties
 import numpy as np
 
-fname = sys.argv[1]
 marker= '-'
-if len(sys.argv)>2:
-    marker = sys.argv[2]
 
-# print '  Plotting',fname,'using 1st column vs. 2nd and ignoring #s and @s'
-
-# font = FontProperties()
-# font.set_family('serif')
 plt.rcParams["font.family"] = "serif"
 rc('font',**{'family':'serif','serif':['Cambria']})
-# rc('text', usetex=True)
 
-fin = open(fname,'r')
-ll  = fin.readlines()
-fin.close()
+import os,sys, numpy as np
+from matplotlib import pyplot as plt
 
-x = []
-y = []
+fname = sys.argv[1]
+if fname[-3:] != "xvg":
+    print "The provided file is not in .xvg format."
+    sys.exit(0)
 
-title  = 'title'
-xlabel = 'xaxis'
-ylabel = 'yaxis'
+with open(fname, 'r') as fid:
+  ll = fid.readlines()
 
+try:
+  inputc = sys.argv[2].split(',')
+except:
+  inputc = ['1:2']
+
+indices = []
+for c in inputc:
+    s = c.split(':')
+    indices.append([int(s[0])-1,int(s[1])-1])
+
+try:
+  marker = sys.argv[3]
+except:
+  marker = '-'
+
+M = len(ll[-1].split())
+labels = [""]*M
+labels[0] = "Time (ps)"
+print "Found",M,"columns:"
+print '  ',"[1] Time"
+ALL = []
+i=1
 for l in ll:
-    if l[0] not in ['@','#']:
-        s = l.split()
-        if len(s)>1:
-            x.append(float(s[0]))
-            yi = []
-            for ys in s[1:]:
-                yi.append(float(ys))
-            y.append(yi)
-    elif l[0]=='@':
-        s = l.split()
-        if s[1]=='title':
-            ind = l.find('"')
-            title = l[ind+1:-2]
-        elif s[1]=='xaxis':
-            ind = l.find('"')
-            xlabel = l[ind+1:-2]
-        elif s[1]=='yaxis':
-            ind = l.find('"')
-            ylabel = l[ind+1:-2]
+  if l.startswith("@ s"):
+      label = ' '.join(l.split()[3:])[1:-1]
+      print '  ','[%d]'%(i+1),label
+      labels[i] = label
+      i += 1
+  if l[0] in ['#','@']:
+    continue
+  s = l.split()
+  ALL.append([float(x) for x in s])
 
-x = np.asarray(x)
-y = np.asarray(y)
-# print x.shape, y.shape
-fig = plt.figure()
+ALL = np.asarray(ALL)
+print '  ',"Data array dimensions:",ALL.shape[0],'x',ALL.shape[1]
+
+for ind in indices:
+    plt.plot(ALL[:,ind[0]],ALL[:,ind[1]],marker,label=labels[ind[1]])
+plt.legend()
 plt.grid(b=True, which='major', color='grey', linestyle='--')
-plt.plot(x,y,marker)
-plt.title(title)
-plt.xlabel(xlabel.replace("\\x","").replace("\\f{}","").replace("\\f{12}","").replace("\\f{4}","").replace("\\S-1\\N","$^{-1}$"))
-plt.ylabel(ylabel.replace("\\x","").replace("\\f{}","").replace("\\S-1\\N","$^{-1}$").replace("\\S-3\\N","$^{-3}$"))
-
+plt.xlabel(labels[indices[0][0]])
+plt.ylabel(', '.join( labels[ind[1]] for ind in indices ))
+plt.title('Content of \'%s\'' % fname)
 plt.show()
